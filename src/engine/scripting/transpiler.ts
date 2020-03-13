@@ -1,10 +1,10 @@
-import { AVGEngineError } from "../core/engine-errors";
+import {AVGEngineError} from "../core/engine-errors";
 // import * as fs from "fs";
 import * as esprima from "esprima";
 import * as escodegen from "escodegen";
-import { i18n } from "engine/core/i18n";
-import { APIManager } from "./api-manager";
-import { AwaitExpression, CallExpression } from "estree";
+import {i18n} from "engine/core/i18n";
+import {APIManager} from "./api-manager";
+import {AwaitExpression, CallExpression} from "estree";
 import * as recast from "recast";
 
 export enum TranspilerError {
@@ -47,6 +47,7 @@ export class Transpiler {
     }
 
     let generated = code;
+    code = code.toString();
     let loc_pos: number[] = [];
 
     try {
@@ -67,7 +68,8 @@ export class Transpiler {
               throw BreakException;
             }
           });
-        } catch (error) {}
+        } catch (error) {
+        }
 
         // TODO: Deprecate
         // if (calleeObj && calleeObj.name === "api") {
@@ -95,7 +97,7 @@ export class Transpiler {
       console.log("Starting async keyword transform AST generate ...");
       let asyncTransformAST = esprima.parse(
         code,
-        { range: true, attachComment: false },
+        {range: true, attachComment: false},
         (node, meta) => {
           if (node.type === "ArrowFunctionExpression") {
             // 默认把所有 API 调用全部设为 async
@@ -148,7 +150,7 @@ export class Transpiler {
         ) {
           // 调用表达式
           // const callExpr = node.callee;
-          const newNode: CallExpression = { ...(<CallExpression>node.callee) };
+          const newNode: CallExpression = {...(<CallExpression>node.callee)};
 
           // 构造 await 表达式
           let awaitExpr: AwaitExpression = {
@@ -308,5 +310,6 @@ export class Transpiler {
     });
   }
 
-  private static _compile_error() {}
+  private static _compile_error() {
+  }
 }
