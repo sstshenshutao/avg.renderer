@@ -1,16 +1,16 @@
 import * as joi from "joi";
 
-import { APIExport, AVGExportedAPI } from "./avg-exported-api";
-import { APIScene, SceneHandle } from "../api/api-scene";
-import { Scene } from "../../data/scene";
-import { mergeDeep, paramCompatible } from "../../core/utils";
-import { ResourcePath } from "../../core/resource";
-import { ResourceData } from "../../data/resource-data";
-import { APIManager } from "../api-manager";
-import { OP } from "../../const/op";
-import { SpriteFilter } from "engine/data/sprite-renderer";
-import { ScriptingDispatcher } from "app/common/manager/scripting-dispatcher";
-import { SpriteAnimationMacro } from "engine/core/graphics/sprite-animate-director";
+import {APIExport, AVGExportedAPI} from "./avg-exported-api";
+import {APIScene, SceneHandle} from "../api/api-scene";
+import {Scene} from "../../data/scene";
+import {mergeDeep, paramCompatible} from "../../core/utils";
+import {ResourcePath} from "../../core/resource";
+import {ResourceData} from "../../data/resource-data";
+import {APIManager} from "../api-manager";
+import {OP} from "../../const/op";
+import {SpriteFilter} from "engine/data/sprite-renderer";
+import {ScriptingDispatcher} from "app/common/manager/scripting-dispatcher";
+import {SpriteAnimationMacro} from "engine/core/graphics/sprite-animate-director";
 
 @APIExport("scene", EngineAPI_Scene)
 export class EngineAPI_Scene extends AVGExportedAPI {
@@ -25,6 +25,9 @@ export class EngineAPI_Scene extends AVGExportedAPI {
     let model = new APIScene();
     model.isAsync = arguments[arguments.length - 1] === "__async_call__";
 
+    // if (typeof id === 'number') {
+    //   let idc = id.toString(10);
+    // }
     model.name = super.validateImageID(id);
     model.filename = ResourceData.from(super.validateFilename(filename), ResourcePath.Backgrounds).filename;
 
