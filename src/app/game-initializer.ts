@@ -1,26 +1,27 @@
-import { SlotManager } from "./../engine/plugin/hooks/slot-manager";
-import { Injectable } from "@angular/core";
+import {SlotManager} from "./../engine/plugin/hooks/slot-manager";
+import {Injectable} from "@angular/core";
 
-import { LoadingLayerService } from "./components/loading-layer/loading-layer.service";
-import { APIImplManager } from "./common/api/api-impl-manger";
+import {LoadingLayerService} from "./components/loading-layer/loading-layer.service";
+import {APIImplManager} from "./common/api/api-impl-manger";
 import * as $ from "jquery";
-import { CanActivate, Router, ActivatedRoute } from "@angular/router";
+import {ActivatedRoute, CanActivate, Router} from "@angular/router";
 
-import { AVGEngineError } from "../engine/core/engine-errors";
-import { TransitionLayerService } from "./components/transition-layer/transition-layer.service";
-import { AVGPlusIPC } from "./common/manager/avgplus-ipc";
-import { input } from "engine/core/input";
-import { i18n } from "engine/core/i18n";
-import { EngineSettings } from "engine/core/engine-setting";
-import { GameResource } from "engine/core/resource";
-import { Setting } from "engine/core/setting";
-import { PlatformService } from "engine/core/platform/platform-service";
-import { AVGNativeFS } from "engine/core/native-modules/avg-native-fs";
-import { AVGNativePath } from "engine/core/native-modules/avg-native-path";
-import { APIManager } from "engine/scripting/api-manager";
-import { randomIn, getRandomBetween } from "engine/core/utils";
-import { HTMLWidgetManager } from "./common/manager/html-widget-manager";
-import { DanmakuManager } from "engine/core/danmaku-mananger";
+import {AVGEngineError} from "../engine/core/engine-errors";
+import {TransitionLayerService} from "./components/transition-layer/transition-layer.service";
+import {AVGPlusIPC} from "./common/manager/avgplus-ipc";
+import {input} from "engine/core/input";
+import {i18n} from "engine/core/i18n";
+import {EngineSettings} from "engine/core/engine-setting";
+import {GameResource} from "engine/core/resource";
+import {Setting} from "engine/core/setting";
+import {PlatformService} from "engine/core/platform/platform-service";
+import {AVGNativeFS} from "engine/core/native-modules/avg-native-fs";
+import {AVGNativePath} from "engine/core/native-modules/avg-native-path";
+import {APIManager} from "engine/scripting/api-manager";
+import {HTMLWidgetManager} from "./common/manager/html-widget-manager";
+import {DanmakuManager} from "engine/core/danmaku-mananger";
+import {JsmoResourceCenter} from "../jsmo/resourceCenter/resourceCenter";
+import {LabelJSMO, PathJSOM} from "../jsmo/resourceCenter/path-manager";
 
 @Injectable()
 export class GameInitializer implements CanActivate {
@@ -59,17 +60,17 @@ export class GameInitializer implements CanActivate {
           <br>
           <h3 style='color: salmon;'>${i18n.lang.ERROR_HANDLER_ADDITION_INFOS}</h3>
           ${
-            error.data.file
-              ? "<div style='color: bisque; white-space: pre; user-select: auto;'> File: " + error.data.file + "</div>"
-              : ""
-          }
+        error.data.file
+          ? "<div style='color: bisque; white-space: pre; user-select: auto;'> File: " + error.data.file + "</div>"
+          : ""
+        }
           ${
-            error.data.lineNumber
-              ? "<div style='color: bisque; white-space: pre; user-select: auto;'> Line: " +
-                error.data.lineNumber +
-                "</div>"
-              : ""
-          }
+        error.data.lineNumber
+          ? "<div style='color: bisque; white-space: pre; user-select: auto;'> Line: " +
+          error.data.lineNumber +
+          "</div>"
+          : ""
+        }
 
         ${JSON.stringify(error.data)}
         </div>
@@ -126,6 +127,26 @@ export class GameInitializer implements CanActivate {
     GameResource.init(assetsRootDirname, dataRootDirname);
   }
 
+  // after Init GameResource(path-initial), we need to load Pak File
+  public async initJsmoResource() {
+    // Get current url params to get assets directory
+    console.log("init JsmoResource");
+    // todo: handle the exceptions
+    let jsmoRC = JsmoResourceCenter.Instance;
+    // pic here
+    // load bg.pak
+    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.BG), x => jsmoRC.setResourcesbuffer(x, LabelJSMO.BG));
+    // load chara.pak
+    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.CHARA), x => jsmoRC.setResourcesbuffer(x, LabelJSMO.CHARA));
+    // audio here
+    // load se.pak
+    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.SE), x => jsmoRC.bufferSome(LabelJSMO.SE, x));
+    // load voice.pak
+    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.VOICE), x => jsmoRC.bufferSome(LabelJSMO.VOICE, x));
+    // load bgm.pak
+    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.BGM), x => jsmoRC.bufferSome(LabelJSMO.BGM, x));
+  }
+
   // Init settings
   public async initGameSettings() {
     const settingFile = AVGNativePath.join(GameResource.getAssetsRoot(), "game.json");
@@ -159,7 +180,7 @@ export class GameInitializer implements CanActivate {
   //  Init screen size
   public async initDesktopWindow() {
     if (PlatformService.isDesktop()) {
-      const { app, BrowserWindow, screen, remote } = require("electron");
+      const {app, BrowserWindow, screen, remote} = require("electron");
 
       const win = remote.getCurrentWindow();
       if (Setting.FullScreen) {

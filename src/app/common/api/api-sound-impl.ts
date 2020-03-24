@@ -5,8 +5,10 @@ import { OP } from "engine/const/op";
 import { APISound } from "engine/scripting/api/api-sound";
 import { AVGScriptUnit } from "engine/scripting/script-unit";
 import { Howl, Howler } from "howler";
+import {JsmoResourceCenter} from "../../../jsmo/resourceCenter/resourceCenter";
 
 export class APISoundImpl extends Impl {
+  public static jsmoRC = JsmoResourceCenter.Instance;
   public static tracks: {
     [track: string]: Howl;
   } = {};
@@ -86,7 +88,7 @@ export class APISoundImpl extends Impl {
       }
 
       var sound = new Howl({
-        src: [script.data.file.filename],
+        src: [APISoundImpl.jsmoRC.getMusic(script.data.file.filename)],
         autoplay: true,
         loop: script.data.loop,
         volume: Setting.getVolume(track) / 100,

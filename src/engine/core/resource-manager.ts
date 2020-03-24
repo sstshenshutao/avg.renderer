@@ -12,7 +12,7 @@ import {AVGNativePath} from "./native-modules/avg-native-path";
 import Texture = PIXI.Texture;
 import {Resource} from 'resource-loader'
 import LoaderResource = PIXI.LoaderResource;
-import ImageResource =PIXI.resources.ImageResource;
+import ImageResource = PIXI.resources.ImageResource;
 import {GameResource} from "./resource";
 
 enum LoadingTaskStatus {
@@ -43,18 +43,70 @@ class GameResourceManager {
     this.resourceLoader.concurrency = 10;
   }
 
-  private fakeResource(url: string, imgData:any) {
+  private fakeResource(url: string, imgData: any) {
     let retResource = new Resource(url, url, {
       crossOrigin: ""
     });
     let img = new Image();
     img.src = `data:image/png;base64,${imgData}`;
     retResource['data'] = img;
-    retResource['texture'] =Texture.fromLoader( retResource.data,
+    retResource['texture'] = Texture.fromLoader(retResource.data,
       retResource.url,
       retResource.name
     );
     return <LoaderResource><unknown>retResource;
+  }
+
+  /**
+   * return promise
+   * @param url
+   * @param loadOptions
+   */
+  public promiseLoadPak(url:string,loadOptions:any){
+    return new Promise(resolve => {
+      this.loadPak(url,resolve,loadOptions);
+    })
+  }
+  /**
+   * use the relative url, like: "jsmoData/MO1/bg/bg.pak"
+   * @param url
+   * @param callback
+   * @param loadOptions
+   */
+  public loadPak(url: string, callback: any, loadOptions?: any) {
+    let loadPakOptions = loadOptions || {
+      loadType: "arraybuffer",
+      xhrType: "arraybuffer",
+      crossOrigin: "*"
+    };
+    const bgPakURL = AVGNativePath.join(GameResource.getAssetsRoot(), url);
+    // console.log("debugBgPakURL:::",bgPakURL);
+    const resource = this.resourceLoader.resources[bgPakURL];
+
+    if (!resource) {
+      console.log("PakFile cache is not in resources, load it now!");
+      this.resourceLoader.add(bgPakURL, bgPakURL, loadPakOptions);
+
+      this.resourceLoader.load((loader, resources) => {
+        // console.log("resources", resources);
+        let data = new Uint8Array(resources[bgPakURL].data);
+        // console.log("datatype:", typeof data);
+        // console.log("data:", data);
+        let fileObj = unzip.getAllFiles(data, unzip.base64ArrayBuffer);
+        //add for each to resources
+        let keys = Object.keys(fileObj);
+        for (let i = 0; i < keys.length; i++) {
+          let key = keys[i];
+          this.resourceLoader.resources[AVGNativePath.join(GameResource.getAssetsRoot(), `graphics/backgrounds/${key}`)] = this.fakeResource(key, fileObj[key]);
+        }
+        //callback loadResource
+        console.log("PakFile load successfully, callback!");
+        callback()
+      });
+    } else {
+      console.log("PakFile cache existed, callback directly!");
+      callback()
+    }
   }
 
   /**
@@ -101,58 +153,10 @@ class GameResourceManager {
         pendingTasks.push(v);
       }
     });
-    let loadPakOptions = {
-      loadType: "arraybuffer",
-      xhrType: "arraybuffer",
-      crossOrigin: "*"
-    };
-    const bgPakURL = AVGNativePath.join(GameResource.getAssetsRoot(), "jsmoData/MO1/bg/bg.pak");
-    // console.log("debugBgPakURL:::",bgPakURL);
-    const resource = self.resourceLoader.resources[bgPakURL];
-    if (!resource) {
-      // console.log("Add !!BgPakURL!! task ");
-      self.resourceLoader.add(bgPakURL, bgPakURL, loadPakOptions);
-
-      self.resourceLoader.load((loader, resources) => {
-        // console.log("resources", resources);
-        let data = new Uint8Array(resources[bgPakURL].data);
-        // console.log("datatype:", typeof data);
-        // console.log("data:", data);
-        let fileObj = unzip.getAllFiles(data, unzip.base64ArrayBuffer);
-        //add for each to resources
-        let keys = Object.keys(fileObj);
-        for (let i = 0; i < keys.length; i++) {
-          let key = keys[i];
-          self.resourceLoader.resources[AVGNativePath.join(GameResource.getAssetsRoot(), `graphics/backgrounds/${key}`)] = self.fakeResource(key,fileObj[key]);
-        }
-        //callback loadResource
-        loadResource()
-      });
-    } else {
-      // console.log("!!BgPakURL!! load from cached");
-      loadResource()
-    }
-
-
-    // if (self.bufferBlock) {
-    //   loadResource();
-    // } else {
-    //   //read the file from disk
-    //   // change settimeout to readpak
-    //
-    //   self.bufferBlock = true;
-    //   unzip.loadPakFile(bgPakURL).then(fileObj => {
-    //     console.log("loadPakFile::ret:", fileObj);
-    //     //add for each to resources
-    //     let keys = Object.keys(fileObj);
-    //     for (let i = 0; i < keys.length; i++) {
-    //       let key = keys[i];
-    //       self.resourceLoader.resources[AVGNativePath.join(GameResource.getAssetsRoot(), `graphics/backgrounds/${key}`)] = self.fakeResource(key,fileObj[key]);
-    //     }
-    //     //callback loadResource
-    //     loadResource()
-    //   })
-    // }
+    // use loadPak to check if the jsmo pakFile in cache
+    // if it isn't in cache, read it before load the real Resource
+    // if it is already in cache(can be loaded with loadPak API), just callback loadResource
+    this.loadPak('jsmoData/MO1/bg/bg.pak', loadResource, undefined);
     function loadResource() {
       if (pendingTasks && pendingTasks.length > 0) {
         for (let task of pendingTasks) {

@@ -118,8 +118,9 @@ export class AVGGame {
 
     let scriptDir = this._scriptDir || "./";
     entryScript = entryScript || AVGNativePath.join(scriptDir, AVGGame.DEFAULT_ENTRY_SCRIPT);
-
+    // this just return the compiled code(with esprima)
     await AVGGame._entryStory.loadFromFile(entryScript);
+// maybe running the compiled code
     await AVGGame._entryStory.run();
   }
 

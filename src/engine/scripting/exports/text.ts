@@ -43,7 +43,7 @@ export class EngineAPI_Text extends AVGExportedAPI {
 
       model.data = mergeDeep(model.data, showOptions);
       console.log("model options", model);
-
+      console.log("debug::APIDialogue.name::",APIDialogue.name);
       const proxy = APIManager.Instance.getImpl(APIDialogue.name, OP.ShowText);
       proxy && (await proxy.runner(<APIDialogue>model));
     };
@@ -68,7 +68,7 @@ export class EngineAPI_Text extends AVGExportedAPI {
   public static async hide() {
     let model = new APIDialogue();
     paramCompatible<APIDialogue, Dialogue>(model, {});
-
+    console.log("debug::APIDialogue.name::",APIDialogue.name);
     const proxy = APIManager.Instance.getImpl(APIDialogue.name, OP.HideText);
     proxy && (await proxy.runner(<APIDialogue>model));
   }

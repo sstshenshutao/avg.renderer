@@ -40,6 +40,7 @@ export class APIManager {
   public init() {
     preExportedSet.forEach((v: any) => {
       this.registerExportClass(v.name, v.t);
+      console.log("debug::registerExportClass::API",v.name, v.t)
     });
 
     this.injectExports();

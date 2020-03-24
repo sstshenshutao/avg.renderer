@@ -99,10 +99,11 @@ export class MainSceneComponent implements OnInit, AfterViewInit {
 
   private async enterGameProcess() {
     const game = AVGGame.getInstance();
+    //实际上没有真正表现，只是生成了一堆promise<ScriptingDispatcher.dispatch>
     game.start(this.currentScript);
 
     // game.start(this.currentScript);
-
+    // 真正表现在舞台上在这里：
     ScriptingDispatcher.watch().subscribe(
       async (scriptingContext: {
         api: AVGScriptUnit;

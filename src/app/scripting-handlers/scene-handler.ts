@@ -36,6 +36,7 @@ export class SceneHandler {
 
     const sprite = await SpriteWidgetManager.getSprite(api.name);
     if (sprite) {
+      //here use addLoading!!!
       await SpriteWidgetManager.updateSpriteWidget(image.name, image);
     } else {
       await SpriteWidgetManager.addSpriteWidget(image, enterSlot, LayerOrder.TopLayer, !api.isAsync);

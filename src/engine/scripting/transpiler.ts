@@ -228,6 +228,8 @@ export class Transpiler {
       // });
 
       const keyword = "await ";
+      // loc_pos are the position index of call-expression
+      // here insert the await for all of the call-expression
       for (let pos of loc_pos.reverse()) {
         if (pos > 0) {
           const a_part = asyncTransformCode.slice(0, pos);
@@ -259,7 +261,7 @@ export class Transpiler {
       // console.log("generted", escodegen.generate(program));
 
       console.timeEnd("Compile Script Elapsed");
-
+      // the reason for "+" is https://blog.csdn.net/xiebaochun/article/details/42172643
       generated = `
         +(async() => {
           try { 

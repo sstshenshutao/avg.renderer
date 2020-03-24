@@ -18,6 +18,7 @@ export class EngineAPI_Scene extends AVGExportedAPI {
    * Load scene with image filename
    *
    * @export
+   * @param id
    * @param {string} filename The background image file of scene
    * @param {Scene} [options]
    */

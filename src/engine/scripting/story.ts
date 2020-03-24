@@ -34,6 +34,7 @@ export class AVGStory {
 
   private compile() {
     this._compiled = Transpiler.transpileFromCode(this._code);
+    // console.log("debug:: compiled-code",this._compiled)
   }
 
   public static UnsafeTerminate() {
@@ -62,7 +63,10 @@ export class AVGStory {
           const context = {
             ...AVGStory.sandbox
           };
-
+          console.log("debug content::",context);
+// don't MISS here! compiled code in this._compiled.
+// this function just run the compiled code, but need to know why
+// the code like (await text.show) can run correctly.
           EngineUtils.evalInContext(this._compiled, context);
         } catch (err) {
           throw err;

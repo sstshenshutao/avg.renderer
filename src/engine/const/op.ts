@@ -16,6 +16,8 @@ export class OP {
   public static MuteAudio = "MuteAudio";
   public static UnmuteAudio = "UnmuteAudio";
 
+  public static LoadPak = "LoadPak";
+
   // public static PlayBGM = "PlayBGM";
   // public static StopBGM = "StopBGM";
   // public static PauseBGM = "PauseBGM";

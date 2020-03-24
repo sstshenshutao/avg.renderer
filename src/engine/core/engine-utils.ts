@@ -11,6 +11,15 @@ export class EngineUtils {
     // const vm = new VirtualMachine(op, value);
     // console.log("ts-bc debug: ", vm.exec(false).value.debugValue());
 
+    // example: js=
+    // +(async() => {
+    //           try {
+    //
+    // await text.show(["hahahahafirst"],{name:"Genji"});
+    // await flow.wait(1000);....
+    // .....
+    // })();
+    // 这里绑定context 作为执行函数的 this, 提供函数text.show等等!!!
     const result = (() => {
       return eval(js);
     }).call(context);
