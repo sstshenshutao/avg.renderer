@@ -91,13 +91,15 @@ export class MainSceneComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.enterGameProcess();
 
+    //todo: choice1 : maybe plug in the LOADING_pak_File here!
+    this.enterGameProcess();
     AVGGame.setGameStatus(GameStatus.Loaded);
     AVGPlusIPC.onGameEngineLoaded();
   }
 
   private async enterGameProcess() {
+    //todo: choice2 : maybe plug in the LOADING_pak_File here!
     const game = AVGGame.getInstance();
     //实际上没有真正表现，只是生成了一堆promise<ScriptingDispatcher.dispatch>
     game.start(this.currentScript);

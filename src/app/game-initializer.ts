@@ -133,18 +133,20 @@ export class GameInitializer implements CanActivate {
     console.log("init JsmoResource");
     // todo: handle the exceptions
     let jsmoRC = JsmoResourceCenter.Instance;
-    // pic here
+    // pic here----
     // load bg.pak
-    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.BG), x => jsmoRC.setResourcesbuffer(x, LabelJSMO.BG));
+    jsmoRC.addLoadPakTask(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.BG), x => jsmoRC.setResourcesbuffer(x, LabelJSMO.BG));
     // load chara.pak
-    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.CHARA), x => jsmoRC.setResourcesbuffer(x, LabelJSMO.CHARA));
-    // audio here
-    // load se.pak
-    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.SE), x => jsmoRC.bufferSome(LabelJSMO.SE, x));
-    // load voice.pak
-    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.VOICE), x => jsmoRC.bufferSome(LabelJSMO.VOICE, x));
-    // load bgm.pak
-    jsmoRC.loadPak(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.BGM), x => jsmoRC.bufferSome(LabelJSMO.BGM, x));
+    jsmoRC.addLoadPakTask(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.CHARA), x => jsmoRC.setResourcesbuffer(x, LabelJSMO.CHARA));
+    // // audio here-----
+    // // load se.pak
+    jsmoRC.addLoadPakTask(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.SE), x => jsmoRC.bufferSome(LabelJSMO.SE, x));
+    // // load voice.pak
+    jsmoRC.addLoadPakTask(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.VOICE), x => jsmoRC.bufferSome(LabelJSMO.VOICE, x));
+    // // load bgm.pak
+    jsmoRC.addLoadPakTask(AVGNativePath.join(GameResource.getAssetsRoot(), PathJSOM.BGM), x => jsmoRC.bufferSome(LabelJSMO.BGM, x));
+    // pic here----
+    jsmoRC.loadAll();
   }
 
   // Init settings

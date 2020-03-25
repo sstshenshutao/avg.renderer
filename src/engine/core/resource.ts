@@ -34,6 +34,7 @@ export class GameResource {
   private static _paths: Map<ResourcePath, string>;
   private static _assetsRoot: string;
   private static _dataRoot: string;
+  private static _projectName: string;
 
   public static init(assetsRoot: string, dataRoot: string) {
     if (!assetsRoot || !dataRoot) {
@@ -43,9 +44,9 @@ export class GameResource {
     this._assetsRoot = assetsRoot;
     this._dataRoot = dataRoot;
 
-    /* 
+    /*
             To use initialize paths, you should create the following directory structure:
-            
+
             Root
             ├── audio
             │   ├── bgm
@@ -62,17 +63,27 @@ export class GameResource {
             │   ├── icons
             │   └── ui
             ├── plugins
-            └── scripts
+            ├── scripts
+            └── jsmoData
+                └─── projectName(such as MO1)
+                      ├── bg-
+                      ├── bgm-
+                      ├── chara-
+                      ├── script
+                      ├── se-
+                      ├── video
+                      ├── voice-
+                      ......
         */
-
+    this._projectName = "MO1";
     this._paths = new Map<ResourcePath, string>([
-      [ResourcePath.BGM, AVGNativePath.join(this._assetsRoot, "audio/bgm")],
+      [ResourcePath.BGM, AVGNativePath.join(this._assetsRoot, `jsmoData/${this._projectName}/bgm`)],
       [ResourcePath.BGS, AVGNativePath.join(this._assetsRoot, "audio/bgs")],
-      [ResourcePath.SE, AVGNativePath.join(this._assetsRoot, "audio/se")],
-      [ResourcePath.Voice, AVGNativePath.join(this._assetsRoot, "audio/voice")],
+      [ResourcePath.SE, AVGNativePath.join(this._assetsRoot, `jsmoData/${this._projectName}/se`)],
+      [ResourcePath.Voice, AVGNativePath.join(this._assetsRoot, `jsmoData/${this._projectName}/voice`)],
       [
         ResourcePath.Backgrounds,
-        AVGNativePath.join(this._assetsRoot, "graphics/backgrounds")
+        AVGNativePath.join(this._assetsRoot, `jsmoData/${this._projectName}/bg`)
       ],
       [
         ResourcePath.Images,
@@ -84,7 +95,7 @@ export class GameResource {
       ],
       [
         ResourcePath.Characters,
-        AVGNativePath.join(this._assetsRoot, "graphics/characters")
+        AVGNativePath.join(this._assetsRoot, `jsmoData/${this._projectName}/chara`)
       ],
       [ResourcePath.Scripts, AVGNativePath.join(this._assetsRoot, "scripts")],
       [ResourcePath.Audio, AVGNativePath.join(this._assetsRoot, "audio")],

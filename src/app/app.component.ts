@@ -40,7 +40,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     await this.initializer.initEngineSettings();
     await this.initializer.initResource(this.route, this.router);
     await this.initializer.initGameSettings();
-    // await this.initializer.initJsmoResource();
+    await this.initializer.initJsmoResource();
     await this.initializer.initHotkeys();
     await this.initializer.initDesktopWindow();
     await this.initializer.initGameEngineData();

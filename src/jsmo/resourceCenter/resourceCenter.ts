@@ -1,16 +1,17 @@
+import * as PIXI from "pixi.js";
 import {Resource} from "resource-loader";
 import {AVGNativePath} from "../../engine/core/native-modules/avg-native-path";
 import {GameResource} from "../../engine/core/resource";
 import unzip from "../unzip/loadPakFile";
 import LoaderResource = PIXI.LoaderResource;
 import Texture = PIXI.Texture;
-import * as PIXI from "pixi.js";
 import {LabelJSMO, PathJSOM} from "./path-manager";
 
 export class JsmoResourceCenter {
   private static _instance: JsmoResourceCenter;
   public resourceLoader = PIXI.Loader.shared;
   public buffer = {};
+  public taskContainer = [];
 
   public static get Instance() {
     return this._instance || (this._instance = new this());
@@ -31,15 +32,22 @@ export class JsmoResourceCenter {
     return <LoaderResource><unknown>retResource;
   }
 
-  /**
-   * return promise
-   * @param url
-   * @param loadOptions
-   */
-  public promiseLoadPak(url: string, loadOptions: any) {
-    return new Promise(resolve => {
-      this.loadPak(url, resolve, loadOptions);
-    })
+  // /**
+  //  * return promise
+  //  * @param url
+  //  * @param loadOptions
+  //  */
+  // public promiseLoadPak(url: string, loadOptions: any) {
+  //   return new Promise(resolve => {
+  //     this.loadAll(url, resolve, loadOptions);
+  //   })
+  // }
+  public addLoadPakTask(url: string, callback: any, loadOptions?: any) {
+    this.taskContainer.push({
+      url: url,
+      callback: callback,
+      loadOptions: loadOptions
+    });
   }
 
   /**
@@ -48,31 +56,37 @@ export class JsmoResourceCenter {
    * @param callback
    * @param loadOptions
    */
-  public loadPak(url: string, callback: any, loadOptions?: any) {
-    let loadPakOptions = loadOptions || {
+  public loadAll() {
+    let defaultLoadPakOptions = {
       loadType: "arraybuffer",
       xhrType: "arraybuffer",
       crossOrigin: "*"
     };
-    const pakURL = url;
-    const resource = this.resourceLoader.resources[pakURL];
-
-    if (!resource) {
-      console.log("PakFile cache is not in resources, load it now!");
-      this.resourceLoader.add(pakURL, pakURL, loadPakOptions);
-
-      this.resourceLoader.load((loader, resources) => {
+    for (let task of this.taskContainer) {
+      const pakURL = task['url'];
+      const loadPakOptions = task['loadOptions'] || defaultLoadPakOptions;
+      const resource = this.resourceLoader.resources[pakURL];
+      if (!resource) {
+        console.log("PakFile cache is not in resources, load it now!");
+        this.resourceLoader.add(pakURL, pakURL, loadPakOptions);
+      } else {
+        console.log("PakFile cache existed, do Nothing!");
+      }
+    }
+    this.resourceLoader.load((loader, resources) => {
+      for (let task of this.taskContainer) {
+        const pakURL = task['url'];
         // console.log("resources", resources);
         let data = new Uint8Array(resources[pakURL].data);
         // console.log("datatype:", typeof data);
         // console.log("data:", data);
         let fileObj = unzip.getAllFiles(data, unzip.base64ArrayBuffer);
-        console.log("PakFile load successfully, callback!");
-        callback(fileObj)
-      });
-    } else {
-      console.log("PakFile cache existed, do Nothing!");
-    }
+        console.log(`PakFile ${pakURL} load successfully, callback!`);
+        task['callback'](fileObj)
+      }
+
+    });
+
   }
 
   /**
@@ -83,10 +97,13 @@ export class JsmoResourceCenter {
   public setResourcesbuffer(fileObj, label: LabelJSMO) {
     //add for each to resources
     let keys = Object.keys(fileObj);
+    let debug = "";
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
-      this.resourceLoader.resources[AVGNativePath.join(GameResource.getAssetsRoot(), `${this.labelToPath(label)}${key}`)] = JsmoResourceCenter.fakeResource(key, fileObj[key]);
+      this.resourceLoader.resources[AVGNativePath.join(this.labelToPath(label), key)] = JsmoResourceCenter.fakeResource(key, fileObj[key]);
+      debug = AVGNativePath.join(this.labelToPath(label), key);
     }
+    console.log("debug::path???", debug);
   }
 
   private labelToPath(label: LabelJSMO) {

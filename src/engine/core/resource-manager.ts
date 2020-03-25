@@ -6,14 +6,7 @@
 */
 // import * as Loader from "resource-loader";
 import * as PIXI from "pixi.js";
-import {getExtension} from "./utils";
-import unzip from "../../jsmo/unzip/loadPakFile.js";
-import {AVGNativePath} from "./native-modules/avg-native-path";
-import Texture = PIXI.Texture;
-import {Resource} from 'resource-loader'
-import LoaderResource = PIXI.LoaderResource;
-import ImageResource = PIXI.resources.ImageResource;
-import {GameResource} from "./resource";
+import { getExtension } from "./utils";
 
 enum LoadingTaskStatus {
   Pending,
@@ -37,78 +30,10 @@ type LoadingTask = {
 class GameResourceManager {
   private loadingTasks: Map<string, LoadingTask> = new Map<string, LoadingTask>();
   public resourceLoader = PIXI.Loader.shared;
-  private bufferBlock = false;
 
   constructor() {
     this.resourceLoader.concurrency = 10;
   }
-
-  private fakeResource(url: string, imgData: any) {
-    let retResource = new Resource(url, url, {
-      crossOrigin: ""
-    });
-    let img = new Image();
-    img.src = `data:image/png;base64,${imgData}`;
-    retResource['data'] = img;
-    retResource['texture'] = Texture.fromLoader(retResource.data,
-      retResource.url,
-      retResource.name
-    );
-    return <LoaderResource><unknown>retResource;
-  }
-
-  /**
-   * return promise
-   * @param url
-   * @param loadOptions
-   */
-  public promiseLoadPak(url:string,loadOptions:any){
-    return new Promise(resolve => {
-      this.loadPak(url,resolve,loadOptions);
-    })
-  }
-  /**
-   * use the relative url, like: "jsmoData/MO1/bg/bg.pak"
-   * @param url
-   * @param callback
-   * @param loadOptions
-   */
-  public loadPak(url: string, callback: any, loadOptions?: any) {
-    let loadPakOptions = loadOptions || {
-      loadType: "arraybuffer",
-      xhrType: "arraybuffer",
-      crossOrigin: "*"
-    };
-    const bgPakURL = AVGNativePath.join(GameResource.getAssetsRoot(), url);
-    // console.log("debugBgPakURL:::",bgPakURL);
-    const resource = this.resourceLoader.resources[bgPakURL];
-
-    if (!resource) {
-      console.log("PakFile cache is not in resources, load it now!");
-      this.resourceLoader.add(bgPakURL, bgPakURL, loadPakOptions);
-
-      this.resourceLoader.load((loader, resources) => {
-        // console.log("resources", resources);
-        let data = new Uint8Array(resources[bgPakURL].data);
-        // console.log("datatype:", typeof data);
-        // console.log("data:", data);
-        let fileObj = unzip.getAllFiles(data, unzip.base64ArrayBuffer);
-        //add for each to resources
-        let keys = Object.keys(fileObj);
-        for (let i = 0; i < keys.length; i++) {
-          let key = keys[i];
-          this.resourceLoader.resources[AVGNativePath.join(GameResource.getAssetsRoot(), `graphics/backgrounds/${key}`)] = this.fakeResource(key, fileObj[key]);
-        }
-        //callback loadResource
-        console.log("PakFile load successfully, callback!");
-        callback()
-      });
-    } else {
-      console.log("PakFile cache existed, callback directly!");
-      callback()
-    }
-  }
-
   /**
    * 添加一项资源加载任务，会堵塞帧
    *
@@ -140,9 +65,7 @@ class GameResourceManager {
     this.loadingTasks.set(url, task);
   }
 
-// this method will always be looped, even if the script is finished!
   public update() {
-    let self = this;
     if (this.resourceLoader.loading) {
       return;
     }
@@ -153,62 +76,55 @@ class GameResourceManager {
         pendingTasks.push(v);
       }
     });
-    // use loadPak to check if the jsmo pakFile in cache
-    // if it isn't in cache, read it before load the real Resource
-    // if it is already in cache(can be loaded with loadPak API), just callback loadResource
-    this.loadPak('jsmoData/MO1/bg/bg.pak', loadResource, undefined);
-    function loadResource() {
-      if (pendingTasks && pendingTasks.length > 0) {
-        for (let task of pendingTasks) {
-          let loadOptions = {};
-          const extension = getExtension(task.url);
-          if (extension === "gif") {
-            loadOptions = {
-              loadType: "arraybuffer",
-              xhrType: "arraybuffer",
-              crossOrigin: "*"
-            };
-          }
 
-          // 这里用 URL 作为 key，便于检索资源缓存
-          const resource = self.resourceLoader.resources[task.url];
-          if (!resource) {
-            console.log("Add pending download task: ", task);
-            self.resourceLoader.add(task.url, task.url, loadOptions);
-          } else {
-            console.log("Resource load from cached: ", task);
-          }
-
-          task.status = LoadingTaskStatus.Loading;
-
+    if (pendingTasks && pendingTasks.length > 0) {
+      for (let task of pendingTasks) {
+        let loadOptions = {};
+        const extension = getExtension(task.url);
+        if (extension === "gif") {
+          loadOptions = {
+            loadType: "arraybuffer",
+            xhrType: "arraybuffer",
+            crossOrigin: "*"
+          };
         }
 
-        self.resourceLoader.load((loader: PIXI.Loader, resources: Partial<Record<string, PIXI.LoaderResource>>) => {
-          console.log("Loading process: ", loader);
-          // this.resourceLoader.reset();
+        // 这里用 URL 作为 key，便于检索资源缓存
+        const resource = this.resourceLoader.resources[task.url];
 
-          // 通知进度变更
-          self.loadingTasks.forEach((value, key) => {
-            console.log("debug::value:", value);
-            const url = value.url;
-            const resource: PIXI.LoaderResource = resources[url];
-            if (value && value.onCompleted && resource) {
-              value.onCompleted(resource);
-            }
-          });
+        if (!resource) {
+          console.log("Add pending download task: ", task);
+          this.resourceLoader.add(task.url, task.url, loadOptions);
+        } else {
+          console.log("Resource load from cached: ", task);
+        }
 
-          // 资源加载完成
-          if (loader.progress === 100) {
-            console.log("Resources all loaded: ", loader);
+        task.status = LoadingTaskStatus.Loading;
+      }
 
-            pendingTasks.forEach((task: LoadingTask) => {
-              self.loadingTasks.delete(task.name);
-            });
+      this.resourceLoader.load((loader: PIXI.Loader, resources: Partial<Record<string, PIXI.LoaderResource>>) => {
+        console.log("Loading process: ", loader);
+        // this.resourceLoader.reset();
+
+        // 通知进度变更
+        this.loadingTasks.forEach((value, key) => {
+          const url = value.url;
+          const resource: PIXI.LoaderResource = resources[url];
+          if (value && value.onCompleted && resource) {
+            value.onCompleted(resource);
           }
         });
-      }
-    }
 
+        // 资源加载完成
+        if (loader.progress === 100) {
+          console.log("Resources all loaded: ", loader);
+
+          pendingTasks.forEach((task: LoadingTask) => {
+            this.loadingTasks.delete(task.name);
+          });
+        }
+      });
+    }
   }
 }
 
